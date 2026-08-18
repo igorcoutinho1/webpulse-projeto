@@ -18,15 +18,15 @@ const sitesParaTestar = [
 export default async function handler(req, res) {
     console.log("Iniciando verificação Cron...");
 
-    for (const site of sitesParaTestar) {
+    // 1. Testa todos os 20 sites SIMULTANEAMENTE (Paralelo)
+    const promessas = sitesParaTestar.map(async (site) => {
         let statusFinal = 'offline';
         const inicio = Date.now();
         
         try {
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 10000);
+            const timeoutId = setTimeout(() => controller.abort(), 8000); // 8s de limite
             
-            // HEAD + User Agent previnem falsos positivos
             const resposta = await fetch(site.url, { 
                 method: 'HEAD',
                 signal: controller.signal,
@@ -36,7 +36,6 @@ export default async function handler(req, res) {
 
             const tempo = Date.now() - inicio;
 
-            // Se obteve resposta HTTP, está acessível. Categoriza pelo tempo.
             if (resposta.status) {
                 if (tempo > 2500) statusFinal = 'lento';
                 else if (tempo > 1200) statusFinal = 'estável';
@@ -46,15 +45,20 @@ export default async function handler(req, res) {
             statusFinal = 'offline';
         }
 
-        // Salva silenciosamente no Supabase
-        await supabase
-            .from('status_servicos')
-            .upsert({ 
-                nome_servico: site.nome, 
-                status: statusFinal, 
-                ultima_verificacao: new Date().toISOString() 
-            }, { onConflict: 'nome_servico' });
-    }
+        return { 
+            nome_servico: site.nome, 
+            status: statusFinal, 
+            ultima_verificacao: new Date().toISOString() 
+        };
+    });
 
-    return res.status(200).json({ mensagem: 'Cron executado com sucesso e logs salvos!' });
+    // 2. Aguarda todos os testes terminarem
+    const resultados = await Promise.all(promessas);
+
+    // 3. Salva TODOS os 20 sites no Supabase de uma só vez (muito mais rápido!)
+    await supabase
+        .from('status_servicos')
+        .upsert(resultados, { onConflict: 'nome_servico' });
+
+    return res.status(200).json({ mensagem: 'Cron executado com sucesso e logs salvos instantaneamente!' });
 }
