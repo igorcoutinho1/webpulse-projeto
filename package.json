@@ -1,6 +1,11 @@
 {
+  "name": "webpulse",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "node api/cron-atualiza.js"
+  },
   "dependencies": {
-    "@supabase/supabase-js": "^2.112.3",
-    "rss-parser": "^3.13.0"
+    "@supabase/supabase-js": "^2.39.0"
   }
 }
