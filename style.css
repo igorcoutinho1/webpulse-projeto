@@ -1178,3 +1178,82 @@ body.dark-theme .btn-secundario:hover {
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 body { font-family: 'Inter', sans-serif; }
+
+
+/* =========================================
+   UPGRADE PROFISSIONAL (VISUAL PREMIUM)
+========================================= */
+
+/* 1. Menu Fixo com Efeito Vidro (Glassmorphism) */
+header {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background-color: rgba(255, 255, 255, 0.85) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--borda);
+  box-shadow: none !important;
+}
+body.dark-theme header {
+  background-color: rgba(30, 41, 59, 0.85) !important;
+  border-bottom: 1px solid #334155;
+}
+
+/* 2. Cartões Flutuantes e Modernos */
+.website-card, .card-grafico, .card-heatmap, .card-alertas, .noticia-card {
+  background: var(--bg-card);
+  border: 1px solid var(--borda);
+  border-radius: 16px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+.website-card:hover {
+  transform: translateY(-6px) !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+  border-color: var(--cor-primaria);
+}
+
+/* 3. Etiquetas (Badges) de Status Premium */
+.website-card .details .status {
+  display: inline-block;
+  padding: 4px 14px;
+  border-radius: 9999px; /* Formato de pílula */
+  font-size: 0.8em;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+}
+
+/* Cores das etiquetas no Tema Claro */
+.status.online { background-color: rgba(46, 204, 113, 0.15); color: #27ae60 !important; }
+.status.estável { background-color: rgba(39, 174, 96, 0.15); color: #219653 !important; }
+.status.instável { background-color: rgba(243, 156, 18, 0.15); color: #d68910 !important; }
+.status.lento { background-color: rgba(155, 89, 182, 0.15); color: #8e44ad !important; }
+.status.offline { background-color: rgba(231, 76, 60, 0.15); color: #c0392b !important; }
+
+/* Cores das etiquetas no Tema Escuro */
+body.dark-theme .status.online { background-color: rgba(46, 204, 113, 0.2); color: #2ecc71 !important; }
+body.dark-theme .status.estável { background-color: rgba(39, 174, 96, 0.2); color: #27ae60 !important; }
+body.dark-theme .status.instável { background-color: rgba(243, 156, 18, 0.2); color: #f39c12 !important; }
+body.dark-theme .status.lento { background-color: rgba(155, 89, 182, 0.2); color: #bb86fc !important; }
+body.dark-theme .status.offline { background-color: rgba(231, 76, 60, 0.2); color: #ff5252 !important; }
+
+/* 4. Botões e Inputs com Cara de App */
+button, .btn-acao {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  letter-spacing: 0.3px;
+}
+button:hover, .btn-acao:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+input[type="url"], input[type="email"], textarea {
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+input[type="url"]:focus, input[type="email"]:focus, textarea:focus {
+  outline: none;
+  border-color: var(--cor-primaria);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
