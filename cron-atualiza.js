@@ -18,14 +18,13 @@ const sitesParaTestar = [
 export default async function handler(req, res) {
     console.log("Iniciando verificação Cron...");
 
-    // 1. Testa todos os 20 sites SIMULTANEAMENTE (Paralelo)
     const promessas = sitesParaTestar.map(async (site) => {
         let statusFinal = 'offline';
         const inicio = Date.now();
         
         try {
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 8000); // 8s de limite
+            const timeoutId = setTimeout(() => controller.abort(), 8000);
             
             const resposta = await fetch(site.url, { 
                 method: 'HEAD',
@@ -52,13 +51,17 @@ export default async function handler(req, res) {
         };
     });
 
-    // 2. Aguarda todos os testes terminarem
     const resultados = await Promise.all(promessas);
 
-    // 3. Salva TODOS os 20 sites no Supabase de uma só vez (muito mais rápido!)
-    await supabase
+    // TENTA SALVAR E CAPTURA O ERRO CASO EXISTA
+    const { error } = await supabase
         .from('status_servicos')
         .upsert(resultados, { onConflict: 'nome_servico' });
 
-    return res.status(200).json({ mensagem: 'Cron executado com sucesso e logs salvos instantaneamente!' });
+    if (error) {
+        console.error("Erro ao salvar no Supabase:", error);
+        return res.status(500).json({ erro: "Falha ao salvar no banco", detalhes: error.message });
+    }
+
+    return res.status(200).json({ mensagem: 'Cron executado e salvo no Supabase com sucesso!' });
 }
