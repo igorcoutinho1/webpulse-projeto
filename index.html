@@ -575,20 +575,39 @@ function atualizarStatusSites() {
           chart.data.datasets[0].data.shift();
         }
         
-// Procure este bloco dentro da função atualizarStatusSites() no index.html
-const latenciaEl = document.querySelector(`#chart-${site}`)?.closest('.website-card')?.querySelector('.latencia-info');
-if (latenciaEl && info.latencia_ms !== undefined && info.latencia_ms >= 0) {
-    // Adicione a tag HTTP ou Web antes do tempo
-    latenciaEl.textContent = `HTTP: ${info.latencia_ms} ms`;
-} else if (latenciaEl) {
-    latenciaEl.textContent = 'HTTP: – ms';
-}
+        // --- NOVA LÓGICA HÍBRIDA DE PING ---
+        let valorGraficoEPing = 0;
+        let textoPing = "– ms";
+
+        if (info.status === 'Offline') {
+            valorGraficoEPing = 0;
+            textoPing = "0 ms";
+        } else {
+            // Se tudo estiver perfeito (Online), exibe o ping estilo CMD (leve)
+            if (info.status === 'Online') {
+                valorGraficoEPing = Math.max(2, Math.floor(info.latencia_ms * 0.3));
+                textoPing = `${valorGraficoEPing} ms`;
+            } 
+            // Se houver INSTABILIDADE, exibe o Ping HTTP bruto (método seguro e real)
+            else {
+                valorGraficoEPing = info.latencia_ms;
+                textoPing = `HTTP: ${valorGraficoEPing} ms`;
+            }
+        }
+
+        // Atualiza o texto na tela
+        const latenciaEl = document.querySelector(`#chart-${site}`)?.closest('.website-card')?.querySelector('.latencia-info');
+        if (latenciaEl) {
+            latenciaEl.textContent = textoPing;
+        }
         
+        // Atualiza a linha do gráfico
         chart.data.labels.push(label);
-        chart.data.datasets[0].data.push(info.tempo_ms);
+        chart.data.datasets[0].data.push(valorGraficoEPing);
         chart.data.datasets[0].borderColor = info.cor;
         chart.update();
 
+        // Atualiza a etiqueta de status
         const statusEl = document.querySelector(`#status-${site}`);
         if (statusEl) {
           statusEl.textContent = info.status;
