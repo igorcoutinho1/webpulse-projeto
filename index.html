@@ -575,12 +575,14 @@ function atualizarStatusSites() {
           chart.data.datasets[0].data.shift();
         }
         
-        const latenciaEl = document.querySelector(`#chart-${site}`)?.closest('.website-card')?.querySelector('.latencia-info');
-        if (latenciaEl && info.latencia_ms !== undefined && info.latencia_ms >= 0) {
-            latenciaEl.textContent = `${info.latencia_ms} ms`;
-        } else if (latenciaEl) {
-          latenciaEl.textContent = '– ms';
-        }
+// Procure este bloco dentro da função atualizarStatusSites() no index.html
+const latenciaEl = document.querySelector(`#chart-${site}`)?.closest('.website-card')?.querySelector('.latencia-info');
+if (latenciaEl && info.latencia_ms !== undefined && info.latencia_ms >= 0) {
+    // Adicione a tag HTTP ou Web antes do tempo
+    latenciaEl.textContent = `HTTP: ${info.latencia_ms} ms`;
+} else if (latenciaEl) {
+    latenciaEl.textContent = 'HTTP: – ms';
+}
         
         chart.data.labels.push(label);
         chart.data.datasets[0].data.push(info.tempo_ms);
