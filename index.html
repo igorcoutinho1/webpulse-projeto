@@ -612,63 +612,6 @@ function atualizarStatusSites() {
     });
 }
 
-function atualizarStatusSites() {
-  fetch("/api/status_sites")
-    .then(res => res.json())
-    .then(statuses => {
-      Object.entries(statuses).forEach(([site, info]) => {
-        const chart = charts[site];
-        if (!chart) return;
-
-        const label = new Date().toLocaleTimeString().slice(0, 5);
-
-        if (chart.data.labels.length >= 10) {
-          chart.data.labels.shift();
-          chart.data.datasets[0].data.shift();
-        }
-        
-        // --- NOVA LÓGICA HÍBRIDA DE PING ---
-        let valorGraficoEPing = 0;
-        let textoPing = "– ms";
-
-        if (info.status === 'Offline') {
-            valorGraficoEPing = 0;
-            textoPing = "0 ms";
-        } else {
-            // Se tudo estiver perfeito (Online), exibe o ping estilo CMD (leve)
-            if (info.status === 'Online') {
-                valorGraficoEPing = Math.max(2, Math.floor(info.latencia_ms * 0.3));
-                textoPing = `${valorGraficoEPing} ms`;
-            } 
-            // Se houver INSTABILIDADE, exibe o Ping HTTP bruto (método seguro e real)
-            else {
-                valorGraficoEPing = info.latencia_ms;
-                textoPing = `HTTP: ${valorGraficoEPing} ms`;
-            }
-        }
-
-        // Atualiza o texto na tela
-        const latenciaEl = document.querySelector(`#chart-${site}`)?.closest('.website-card')?.querySelector('.latencia-info');
-        if (latenciaEl) {
-            latenciaEl.textContent = textoPing;
-        }
-        
-        // Atualiza a linha do gráfico
-        chart.data.labels.push(label);
-        chart.data.datasets[0].data.push(valorGraficoEPing);
-        chart.data.datasets[0].borderColor = info.cor;
-        chart.update();
-
-        // Atualiza a etiqueta de status
-        const statusEl = document.querySelector(`#status-${site}`);
-        if (statusEl) {
-          statusEl.textContent = info.status;
-          statusEl.className = `status ${info.status.toLowerCase()}`;
-        }
-      });
-    });
-}
-
 function normalizaTexto(texto) {
   return texto
     .normalize("NFD")
