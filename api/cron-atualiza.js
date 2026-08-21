@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
+// O Cron usará a Service Key para ter poder de administrador e salvar os dados
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
 
 const sitesParaTestar = [
     { nome: 'whatsapp', url: 'https://web.whatsapp.com/' }, { nome: 'facebook', url: 'https://facebook.com/' },
