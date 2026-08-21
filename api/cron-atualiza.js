@@ -16,49 +16,37 @@ const sitesParaTestar = [
 ];
 
 export default async function handler(req, res) {
-    console.log("Iniciando verificação Cron...");
-
-    // 1. Testa todos os 20 sites SIMULTANEAMENTE (Paralelo)
     const promessas = sitesParaTestar.map(async (site) => {
         let statusFinal = 'offline';
         const inicio = Date.now();
         
         try {
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 8000); // 8s de limite
-            
-            const resposta = await fetch(site.url, { 
-                method: 'HEAD',
-                signal: controller.signal,
-                headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) WebPulseBot/1.0' }
-            });
+            const timeoutId = setTimeout(() => controller.abort(), 8000);
+            const resposta = await fetch(site.url, { method: 'HEAD', signal: controller.signal, headers: { 'User-Agent': 'Mozilla/5.0' }});
             clearTimeout(timeoutId);
-
             const tempo = Date.now() - inicio;
 
             if (resposta.status) {
                 if (tempo > 2500) statusFinal = 'lento';
-                else if (tempo > 1200) statusFinal = 'estável';
+                else if (tempo > 1200) statusFinal = 'instável'; // Mais realista
                 else statusFinal = 'online';
             }
-        } catch (erro) {
-            statusFinal = 'offline';
-        }
+        } catch (erro) { statusFinal = 'offline'; }
 
-        return { 
-            nome_servico: site.nome, 
-            status: statusFinal, 
-            ultima_verificacao: new Date().toISOString() 
-        };
+        return { nome_servico: site.nome, status: statusFinal, data_verificacao: new Date().toISOString() };
     });
 
-    // 2. Aguarda todos os testes terminarem
     const resultados = await Promise.all(promessas);
 
-    // 3. Salva TODOS os 20 sites no Supabase de uma só vez (muito mais rápido!)
-    await supabase
-        .from('status_servicos')
-        .upsert(resultados, { onConflict: 'nome_servico' });
+    // 1. Salva na tabela atual (para leitura rápida) e no Log (para gráficos)
+    await supabase.from('status_servicos').upsert(resultados, { onConflict: 'nome_servico' });
+    await supabase.from('historico_status').insert(resultados);
 
-    return res.status(200).json({ mensagem: 'Cron executado com sucesso e logs salvos instantaneamente!' });
+    // 2. Limpeza Inteligente: Apaga logs com mais de 24 horas!
+    const ontem = new Date();
+    ontem.setHours(ontem.getHours() - 24);
+    await supabase.from('historico_status').delete().lt('data_verificacao', ontem.toISOString());
+
+    return res.status(200).json({ mensagem: 'Logs reais salvos e limpeza de 24h executada!' });
 }
