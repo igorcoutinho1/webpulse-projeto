@@ -653,12 +653,20 @@ function monitorLink() {
 
       let nivelPerigo = 0;
 
-      for (const item of data.itens) {
+for (const item of data.itens) {
         const div = document.createElement("div");
         div.classList.add("item");
         const statusClass = item.status || "suspeito";
 
-        div.innerHTML = `<span class="status ${statusClass}">${item.titulo}: ${item.valor}</span>`;
+        // Cria o elemento de forma segura
+        const span = document.createElement("span");
+        span.className = `status ${statusClass}`;
+        
+        // Define o título de forma segura e adiciona o valor como um "Nó de Texto" (imune a XSS)
+        span.textContent = `${item.titulo}: `;
+        span.appendChild(document.createTextNode(item.valor));
+        
+        div.appendChild(span);
         analiseEl.appendChild(div);
 
         if (statusClass === "reprovado") nivelPerigo += 2;
@@ -947,10 +955,19 @@ function analisarEmail() {
         reprovado: "❌"
       };
 
-      data.itens.forEach(item => {
+  data.itens.forEach(item => {
         const div = document.createElement("div");
         div.classList.add("item");
-        div.innerHTML = `<span class="status ${item.status}">${icones[item.status] || "📄"} <strong>${item.titulo}:</strong> ${item.valor}</span>`;
+        
+        const span = document.createElement("span");
+        span.className = `status ${item.status}`;
+        
+        // Monta a estrutura HTML segura do ícone e título
+        span.innerHTML = `${icones[item.status] || "📄"} <strong>${item.titulo}:</strong> `;
+        // Usa createTextNode APENAS para o valor (onde mora o perigo da injeção)
+        span.appendChild(document.createTextNode(item.valor));
+        
+        div.appendChild(span);
         itensEl.appendChild(div);
       });
 
