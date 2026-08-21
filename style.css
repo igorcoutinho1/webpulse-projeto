@@ -1309,3 +1309,23 @@ body.dark-theme .modern-logo {
     box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
   }
 }
+
+/* =========================================
+   AJUSTES: CARTÕES ESTÁTICOS E PING OCULTO
+========================================= */
+
+/* Trava os cartões para não pularem ao passar o mouse */
+.website-card {
+  transition: border-color 0.3s ease, box-shadow 0.3s ease !important;
+}
+
+.website-card:hover {
+  transform: none !important; /* Remove o salto */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03) !important;
+  border-color: var(--borda); /* Se não quiser que a borda fique azul, mantenha var(--borda) */
+}
+
+/* Oculta o ping estático em texto (já que irá para o mouse) */
+.latencia-info {
+  display: none !important;
+}
