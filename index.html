@@ -532,16 +532,15 @@ siteList.forEach(site => {
   const ctx = canvas.getContext("2d");
 
   charts[site] = new Chart(ctx, {
-    type: 'bar', // Alterado para barras
+    type: 'bar',
     data: {
       labels: [],
       datasets: [{
         label: 'Ping',
         data: [],
-        backgroundColor: [], // O array de cores vai manter o histórico fixo de cada barra
-        borderRadius: 4,     // Barras com pontas levemente arredondadas
-        borderWidth: 0,
-        barPercentage: 0.8
+        backgroundColor: [], 
+        borderRadius: 3, 
+        borderWidth: 0
       }]
     },
     options: {
@@ -550,16 +549,22 @@ siteList.forEach(site => {
       maintainAspectRatio: false,
       scales: {
         x: { display: false, grid: { display: false } },
-        y: { display: false, grid: { display: false }, min: 0 }
+        y: { display: false, grid: { display: false }, min: 0, suggestedMax: 150 }
       },
       plugins: {
         legend: { display: false },
         tooltip: {
-          enabled: true, // Ativa a exibição ao passar o mouse
+          enabled: true,
           displayColors: false,
+          backgroundColor: 'rgba(15, 23, 42, 0.9)', /* Fundo escuro moderno e translúcido */
+          padding: { top: 6, bottom: 6, left: 10, right: 10 }, /* Espaçamento ideal para tirar o achatado */
+          cornerRadius: 6, /* Bordas arredondadas suaves */
+          titleFont: { size: 0 }, /* Remove o espaço fantasma do título */
+          bodyFont: { size: 13, weight: 'bold', family: "'Inter', sans-serif" }, /* Fonte limpa e legível */
           callbacks: {
+            title: function() { return null; }, /* Garante que o título não ocupe espaço */
             label: function(context) {
-              return context.raw + ' ms'; // Adiciona 'ms' no balãozinho
+              return context.raw + ' ms';
             }
           }
         }
