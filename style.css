@@ -1337,3 +1337,117 @@ body.dark-theme .modern-logo {
 body.dark-theme .status.neutro {
   color: #94a3b8; 
 }
+
+/* =========================================
+   RESPONSIVIDADE FLUIDA (MOBILE E TABLETS)
+========================================= */
+
+/* 1. Grid Inteligente (Substitui as regras antigas rígidas) */
+/* O auto-fit calcula sozinho quantas colunas cabem na tela, sem precisar fixar números! */
+.website-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)) !important;
+  gap: 20px;
+}
+
+/* 2. Adaptação do Menu Superior para Celulares */
+@media (max-width: 768px) {
+  header {
+    flex-direction: column;
+    text-align: center;
+    padding: 20px 15px;
+    gap: 15px;
+    position: relative;
+  }
+  
+  header nav ul {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  header nav ul li {
+    margin-left: 0;
+  }
+
+  /* Transforma os links do menu em "botões" clicáveis para o dedo (Touch Friendly) */
+  header nav ul li a {
+    font-size: 0.85em;
+    padding: 8px 12px;
+    background-color: rgba(0, 0, 0, 0.05);
+    border-radius: 8px;
+  }
+  
+  body.dark-theme header nav ul li a {
+    background-color: rgba(255, 255, 255, 0.08);
+  }
+
+  /* Joga o botão de Tema Escuro para o canto superior direito no celular */
+  .theme-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    margin: 0;
+  }
+}
+
+/* 3. Ajustes de Tela para os Gráficos e Painel (Dashboard) */
+@media (max-width: 768px) {
+  .dashboard-container {
+    flex-direction: column;
+  }
+  
+  .card-grafico, .card-heatmap, .card-alertas {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    padding: 15px;
+  }
+
+  /* Diminui os quadradinhos no celular para caber na tela */
+  .heatmap-grid-novo {
+    grid-template-columns: repeat(auto-fill, minmax(105px, 1fr));
+    gap: 10px;
+  }
+  
+  /* Ajuste no padding geral da página para celulares */
+  main, section {
+    padding: 15px;
+  }
+}
+
+/* 4. Formulários, Botões e Rodapé Fluidos */
+@media (max-width: 768px) {
+  .link-input {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .link-monitor .link-input input[type="url"],
+  .email-analyzer-form input,
+  .email-analyzer-form textarea {
+    width: 100%;
+    border-radius: 8px !important;
+    box-sizing: border-box;
+  }
+  
+  .link-monitor .link-input button {
+    width: 100%;
+    border-radius: 8px !important;
+  }
+
+  .botoes-email {
+    flex-direction: column;
+  }
+
+  .footer-info {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .footer-card {
+    width: 100%;
+    max-width: 100%;
+  }
+}
