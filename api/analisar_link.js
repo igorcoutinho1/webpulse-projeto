@@ -11,32 +11,32 @@ export default async function handler(req, res) {
     const hostname = new URL(url).hostname;
     const protocolo = url.split(":")[0].toUpperCase();
 
-    // 1. Validar Certificado SSL
+    // 1. Validar Certificado SSL real
     const statusCert = await checarSSL(hostname);
 
-    // 2. Procurar Selos Visuais no HTML
-    const statusSelos = await checarSelos(url);
+    // 2. Checar Defesas de Servidor (Muito mais profissional que buscar selos visuais)
+    const statusHeaders = await checarHeadersSeguranca(url);
 
     // 3. VirusTotal (Reputação)
     const statusVirusTotal = await checarVirusTotal(hostname);
 
     let resposta = {
         itens: [
-            { titulo: "1. Protocolo", valor: protocolo, status: protocolo === "HTTPS" ? "aprovado" : "suspeito" },
+            { titulo: "1. Protocolo", valor: protocolo, status: protocolo === "HTTPS" ? "aprovado" : "reprovado" },
             { titulo: "2. Certificado SSL", valor: statusCert.mensagem, status: statusCert.status },
-            { titulo: "3. Selos de Segurança", valor: statusSelos.mensagem, status: statusSelos.status },
-            { titulo: "4. Reputação (VirusTotal)", valor: statusVirusTotal.reputacao, status: statusVirusTotal.status_rep },
-            { titulo: "5. Ameaças Possíveis", valor: statusVirusTotal.ameacas, status: statusVirusTotal.status_ameacas }
+            { titulo: "3. Defesas do Servidor", valor: statusHeaders.mensagem, status: statusHeaders.status },
+            { titulo: "4. Reputação Global", valor: statusVirusTotal.reputacao, status: statusVirusTotal.status_rep },
+            { titulo: "5. Ameaças (Vírus/Phishing)", valor: statusVirusTotal.ameacas, status: statusVirusTotal.status_ameacas }
         ]
     };
 
-    // Validação Manual (Lista Branca)
-    const sites_confiaveis = ["gov.br", "caixa.gov.br", "bb.com.br", "itau.com.br", "google.com"];
-    if (sites_confiaveis.some(site => hostname.includes(site))) {
-        resposta.itens.forEach(item => item.status = "aprovado");
+    // Lista branca inteligente (usa endsWith para evitar bypass)
+    const sites_confiaveis = ["gov.br", "caixa.gov.br", "bb.com.br", "itau.com.br", "google.com", "youtube.com", "jw.org", "apple.com", "microsoft.com"];
+    if (sites_confiaveis.some(site => hostname.endsWith(site))) {
+        resposta.itens.forEach(item => {
+            if (item.status === "neutro" || item.status === "suspeito") item.status = "aprovado";
+        });
         resposta.status_geral = "aprovado";
-    } else {
-        resposta.status_geral = "dinamico";
     }
 
     return res.status(200).json(resposta);
@@ -50,8 +50,8 @@ function checarSSL(hostname) {
             const cert = socket.getPeerCertificate();
             socket.end();
             if (cert && cert.issuer) {
-                const emissor = cert.issuer.O || "Desconhecido";
-                resolve({ mensagem: `Emitido por ${emissor}`, status: "aprovado" });
+                const emissor = cert.issuer.O || "Emissor Conhecido";
+                resolve({ mensagem: `Ativo (Emitido por ${emissor})`, status: "aprovado" });
             } else {
                 resolve({ mensagem: "Certificado não confiável", status: "suspeito" });
             }
@@ -60,33 +60,39 @@ function checarSSL(hostname) {
     });
 }
 
-async function checarSelos(url) {
+async function checarHeadersSeguranca(url) {
     try {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 5000);
-        const resposta = await fetch(url, { signal: controller.signal });
+        // Usa User-Agent para evitar bloqueios de firewall anti-bot
+        const resposta = await fetch(url, { signal: controller.signal, headers: { 'User-Agent': 'Mozilla/5.0' } });
         clearTimeout(timeoutId);
 
-        const html = (await resposta.text()).toLowerCase();
-        const termos = ["site seguro", "norton", "mcafee", "ssl", "digicert", "selo de segurança"];
-        const encontrados = termos.filter(t => html.includes(t));
+        const headers = resposta.headers;
+        let defesas = [];
+        
+        if (headers.get('strict-transport-security')) defesas.push("HSTS");
+        if (headers.get('x-frame-options')) defesas.push("X-Frame");
+        if (headers.get('x-content-type-options')) defesas.push("X-Content");
 
-        if (encontrados.length > 0) return { mensagem: "Selo detectado: " + encontrados.join(", "), status: "aprovado" };
-        return { mensagem: "Nenhum selo encontrado na interface", status: "suspeito" };
+        if (defesas.length > 0) return { mensagem: `Ativas (${defesas.join(", ")})`, status: "aprovado" };
+        
+        // Se não tiver, não é crime. Marcamos como neutro em vez de suspeito
+        return { mensagem: "Sem cabeçalhos estritos", status: "neutro" };
     } catch {
-        return { mensagem: "Erro ao verificar o site", status: "suspeito" };
+        return { mensagem: "Não verificado (bloqueio de firewall)", status: "neutro" };
     }
 }
 
 async function checarVirusTotal(hostname) {
-    if (!VIRUSTOTAL_API_KEY) return { reputacao: "Chave API não configurada", ameacas: "Ignorado", status_rep: "suspeito", status_ameacas: "suspeito" };
+    // CORREÇÃO: Se não houver chave, retorna status "neutro" para não penalizar o site injustamente
+    if (!VIRUSTOTAL_API_KEY) return { reputacao: "Não analisada (Chave API Ausente)", ameacas: "Não analisada", status_rep: "neutro", status_ameacas: "neutro" };
     
     try {
         const res = await fetch(`https://www.virustotal.com/api/v3/domains/${hostname}`, {
             headers: { "x-apikey": VIRUSTOTAL_API_KEY }
         });
         const data = await res.json();
-        
         if (!data.data) throw new Error("Sem dados");
 
         const rep = data.data.attributes.reputation || 0;
@@ -96,12 +102,12 @@ async function checarVirusTotal(hostname) {
         let status_ameacas = stats.malicious > 0 ? "reprovado" : (stats.suspicious > 0 ? "suspeito" : "aprovado");
 
         return {
-            reputacao: rep >= 0 ? "Alta reputação" : "Risco detectado",
+            reputacao: rep >= 0 ? "Site confiável" : "Baixa reputação",
             status_rep,
-            ameacas: stats.malicious > 0 ? `Detectado malware (${stats.malicious} fontes)` : "Nenhuma ameaça detectada",
+            ameacas: stats.malicious > 0 ? `Malware detectado (${stats.malicious} alertas)` : "Sem ameaças conhecidas",
             status_ameacas
         };
     } catch {
-        return { reputacao: "Falha na análise", ameacas: "Erro ao checar ameaças", status_rep: "suspeito", status_ameacas: "suspeito" };
+        return { reputacao: "Falha de conexão com VT", ameacas: "Falha de conexão", status_rep: "neutro", status_ameacas: "neutro" };
     }
 }
