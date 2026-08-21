@@ -1257,3 +1257,55 @@ input[type="url"]:focus, input[type="email"]:focus, textarea:focus {
   border-color: var(--cor-primaria);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
 }
+
+/* =========================================
+   LOGO MODERNA (WEBPULSE)
+========================================= */
+.modern-logo {
+  font-size: 1.8em;
+  font-weight: 800;
+  letter-spacing: -1px;
+  display: flex;
+  align-items: baseline;
+  margin: 0;
+  color: #0f172a; /* Cor no tema claro */
+  cursor: default;
+}
+
+body.dark-theme .modern-logo {
+  color: #f8fafc; /* Cor no tema escuro */
+}
+
+/* Efeito gradiente maravilhoso na palavra "Pulse" */
+.modern-logo .highlight {
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-left: 2px;
+}
+
+/* Bolinha de "Radar" pulsante ao lado da logo */
+.pulse-dot {
+  width: 10px;
+  height: 10px;
+  background-color: #3b82f6;
+  border-radius: 50%;
+  margin-left: 6px;
+  position: relative;
+  box-shadow: 0 0 0 rgba(59, 130, 246, 0.7);
+  animation: logo-pulse 2s infinite;
+}
+
+/* A animação contínua do pulso */
+@keyframes logo-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+  }
+}
