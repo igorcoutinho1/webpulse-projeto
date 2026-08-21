@@ -86,7 +86,7 @@ export default async function handler(req, res) {
         mensagem = "ALTO RISCO: Este e-mail reprovou nas verificações de segurança. Não clique em links ou baixe anexos.";
     } else if (score < 2 || (isFree && (temLink || temPalavraAnexo))) {
         statusFinal = "suspeito";
-        mensagem = "CUIDADO: E-mail de origem gratuita ou com elementos suspeitos. Verifique o contexto com atenção.";
+        mensagem = "CUIDADO: E-mail de origem gratuita ou com elementos suspeitos.";
     }
 
     return res.status(200).json({ itens, status: statusFinal, mensagem });
