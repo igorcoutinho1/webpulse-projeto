@@ -549,20 +549,22 @@ siteList.forEach(site => {
       maintainAspectRatio: false,
       scales: {
         x: { display: false, grid: { display: false } },
-        y: { display: false, grid: { display: false }, min: 0, suggestedMax: 150 }
+        // beginAtZero garante que comece do chão, mas sem teto (suggestedMax removido) 
+        // para as barras esticarem e ficarem visíveis
+        y: { display: false, grid: { display: false }, beginAtZero: true }
       },
       plugins: {
         legend: { display: false },
         tooltip: {
           enabled: true,
           displayColors: false,
-          backgroundColor: 'rgba(15, 23, 42, 0.9)', /* Fundo escuro moderno e translúcido */
-          padding: { top: 6, bottom: 6, left: 10, right: 10 }, /* Espaçamento ideal para tirar o achatado */
-          cornerRadius: 6, /* Bordas arredondadas suaves */
-          titleFont: { size: 0 }, /* Remove o espaço fantasma do título */
-          bodyFont: { size: 13, weight: 'bold', family: "'Inter', sans-serif" }, /* Fonte limpa e legível */
+          backgroundColor: 'rgba(15, 23, 42, 0.9)', 
+          padding: 10, /* Padding simplificado para não bugar o Chart.js */
+          cornerRadius: 6,
+          bodyFont: { size: 14, weight: 'bold', family: "'Inter', sans-serif" }, 
           callbacks: {
-            title: function() { return null; }, /* Garante que o título não ocupe espaço */
+            // Retorna um array vazio para sumir com o título sem quebrar a fonte
+            title: function() { return []; }, 
             label: function(context) {
               return context.raw + ' ms';
             }
