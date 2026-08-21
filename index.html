@@ -525,42 +525,92 @@ const siteList = [
   "uol", "bradesco", "picpay"
 ];
 
-// Cria gráficos inicialmente com estilo de linha
+// 1. CRIAÇÃO DOS GRÁFICOS EM BARRAS
 siteList.forEach(site => {
   const canvas = document.getElementById(`chart-${site}`);
   if (!canvas) return;
   const ctx = canvas.getContext("2d");
 
   charts[site] = new Chart(ctx, {
-    type: 'line',
+    type: 'bar', // Alterado para barras
     data: {
       labels: [],
       datasets: [{
-        label: site,
+        label: 'Ping',
         data: [],
-        borderColor: 'gray',
-        borderWidth: 2,
-        fill: false,
-        pointRadius: 0,
-        tension: 0.4
+        backgroundColor: [], // O array de cores vai manter o histórico fixo de cada barra
+        borderRadius: 4,     // Barras com pontas levemente arredondadas
+        borderWidth: 0,
+        barPercentage: 0.8
       }]
     },
     options: {
       animation: false,
       responsive: true,
       maintainAspectRatio: false,
-      // DENTRO DO index.html (na criação do Chart)
       scales: {
         x: { display: false, grid: { display: false } },
-        y: { display: false, grid: { display: false }, min: 0, suggestedMax: 1000 }
+        y: { display: false, grid: { display: false }, min: 0 }
       },
       plugins: {
         legend: { display: false },
-        tooltip: { enabled: false }
+        tooltip: {
+          enabled: true, // Ativa a exibição ao passar o mouse
+          displayColors: false,
+          callbacks: {
+            label: function(context) {
+              return context.raw + ' ms'; // Adiciona 'ms' no balãozinho
+            }
+          }
+        }
       }
     }
   });
 });
+
+// 2. FUNÇÃO QUE ATUALIZA OS DADOS
+function atualizarStatusSites() {
+  fetch("/api/status_sites")
+    .then(res => res.json())
+    .then(statuses => {
+      Object.entries(statuses).forEach(([site, info]) => {
+        const chart = charts[site];
+        if (!chart) return;
+
+        const label = new Date().toLocaleTimeString().slice(0, 5);
+
+        // Limite de 15 barras no gráfico (se passar, remove a primeira da esquerda)
+        if (chart.data.labels.length >= 15) {
+          chart.data.labels.shift();
+          chart.data.datasets[0].data.shift();
+          chart.data.datasets[0].backgroundColor.shift(); 
+        }
+        
+        let valorGraficoEPing = 0;
+
+        if (info.status === 'Offline') {
+            valorGraficoEPing = 0;
+        } else if (info.status === 'Online') {
+            valorGraficoEPing = Math.max(2, Math.floor(info.latencia_ms * 0.3));
+        } else {
+            valorGraficoEPing = info.latencia_ms;
+        }
+
+        // Adiciona a nova barra com a cor travada daquele exato momento
+        chart.data.labels.push(label);
+        chart.data.datasets[0].data.push(valorGraficoEPing);
+        chart.data.datasets[0].backgroundColor.push(info.cor); 
+        chart.update();
+
+        // Atualiza a etiqueta colorida (Online, Estável, etc.)
+        const statusEl = document.querySelector(`#status-${site}`);
+        if (statusEl) {
+          statusEl.textContent = info.status;
+          statusEl.className = `status ${info.status.toLowerCase()}`;
+        }
+      });
+    });
+}
 
 function atualizarStatusSites() {
   fetch("/api/status_sites")
