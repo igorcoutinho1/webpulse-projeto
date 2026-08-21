@@ -1329,3 +1329,11 @@ body.dark-theme .modern-logo {
 .latencia-info {
   display: none !important;
 }
+
+/* Status Neutro para análises ignoradas ou sem API configurada */
+.status.neutro {
+  color: #7f8c8d; /* Cinza discreto */
+}
+body.dark-theme .status.neutro {
+  color: #94a3b8; 
+}
